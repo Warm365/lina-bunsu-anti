@@ -91,4 +91,9 @@ export class PizzaSVG {
         this.coloredSlices = colored;
         this.render();
     }
+
+    setColoredSlices(count) {
+        this.coloredSlices = count;
+        this.render();
+    }
 }

@@ -16,6 +16,9 @@ export class Stage01 {
         this.totalSteps = 4 + stage01Problems.length;
         this.problems = stage01Problems;
         this.currentProblemIdx = 0;
+        this.userInteractionState = {
+            colored: 0
+        };
 
         this.canvasPad = null;
         this.keypad = null;
@@ -163,6 +166,9 @@ export class Stage01 {
     }
 
     renderProblem(idx) {
+        // [Stage 2] 문제 시작 전 상태 초기화
+        this.userInteractionState.colored = 0;
+
         const problem = this.problems[idx];
         this.container.innerHTML = `
             <div class="flex flex-col h-full space-y-2 overflow-hidden">
@@ -202,10 +208,17 @@ export class Stage01 {
 
         if (problem.visual) {
             if (problem.visual.type === 'pizza') {
-                new PizzaSVG('visual-area', { 
+                this.pizza = new PizzaSVG('visual-area', { 
                     total: problem.visual.total, 
                     colored: problem.visual.colored,
-                    interactive: problem.visual.interactive
+                    interactive: problem.visual.interactive,
+                    onSliceClick: (i) => {
+                        if (problem.visual.interactive) {
+                            // Toggle coloring (simple click-to-increase for now as per children UI)
+                            this.userInteractionState.colored = (this.userInteractionState.colored + 1) % (problem.visual.total + 1);
+                            this.pizza.setColoredSlices(this.userInteractionState.colored);
+                        }
+                    }
                 });
             } else if (problem.visual.type === 'multiple_choice_visual') {
                 this.renderMultipleChoiceVisual(problem.visual.options);
@@ -258,6 +271,19 @@ export class Stage01 {
             isCorrect = true;
         } else if (problem.type === "comparison" && typeof val === "number") {
             isCorrect = val === problem.correctAnswer;
+        } else if (problem.type === "fraction_to_visual") {
+            // Check both the visual coloring and the keypad input (if required)
+            const isVisualCorrect = this.userInteractionState.colored === parseInt(problem.correctAnswer.numerator);
+            const isKeypadCorrect = (
+                val.numerator === problem.correctAnswer.numerator &&
+                val.denominator === problem.correctAnswer.denominator
+            );
+            isCorrect = isVisualCorrect && isKeypadCorrect;
+            
+            if (!isVisualCorrect && isKeypadCorrect) {
+                this.showFeedback(false, "그림도 정답만큼 색칠해볼까요?");
+                return;
+            }
         } else {
             isCorrect = (
                 val.numerator === problem.correctAnswer.numerator &&
