@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>태린이의 분수산 정복기</title>
+    <meta name="description" content="태린이를 위한 인터랙티브 분수 학습 앱">
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4A8B4A">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Outfit:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mountain: '#4A8B4A',
+                        sky: '#7CB9E8',
+                        reward: '#F4D03F',
+                        danger: '#FF8C7A',
+                        cream: '#FFF8E7',
+                        clay: '#8B4513'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                        montserrat: ['Montserrat', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif']
+                    },
+                    backdropBlur: {
+                        xs: '2px'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body class="bg-cream font-sans min-h-screen overflow-hidden selection:bg-mountain selection:text-white">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-mountain transition-opacity duration-500">
+        <div class="text-center">
+            <div class="inline-block animate-bounce mb-4 text-6xl">🏔️</div>
+            <h1 class="text-white text-2xl font-bold tracking-tight">분수산으로 떠나요...</h1>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main id="app" class="relative w-full h-screen max-w-4xl mx-auto flex flex-col shadow-2xl bg-white/30 backdrop-blur-md overflow-hidden">
+        
+        <!-- Header / Stats Bar -->
+        <header id="stats-bar" class="p-4 flex justify-between items-center bg-white/50 border-b border-white/20 z-20">
+            <div class="flex items-center space-x-3">
+                <button id="btn-back" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-mountain hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <div class="h-8 w-px bg-mountain/20"></div>
+                <div class="flex flex-col">
+                    <span id="stage-title" class="text-xs text-mountain/60 font-bold uppercase tracking-wider">Loading...</span>
+                    <h2 id="current-stage-name" class="text-lg font-bold text-mountain leading-tight">분수산 탐험</h2>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Progress -->
+                <div class="hidden md:flex flex-col items-end mr-2">
+                    <div class="flex items-center space-x-1">
+                        <span id="progress-text" class="text-xs font-bold text-mountain/70">0/10</span>
+                    </div>
+                    <div class="w-32 h-2 bg-mountain/10 rounded-full mt-1 overflow-hidden">
+                        <div id="progress-fill" class="h-full bg-mountain transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <!-- Stars -->
+                <div class="flex items-center bg-reward/20 px-3 py-1.5 rounded-full border border-reward/30 shadow-sm">
+                    <span class="text-reward mr-1">⭐</span>
+                    <span id="star-count" class="font-outfit font-bold text-reward-700">0</span>
+                </div>
+                <!-- TTS Button -->
+                <button id="btn-tts" class="w-10 h-10 rounded-full bg-sky/20 flex items-center justify-center text-sky hover:scale-110 transition-transform border border-sky/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <div id="content-area" class="flex-1 relative overflow-y-auto">
+            <!-- Mountain Map (Initial Screen) -->
+            <div id="mountain-view" class="absolute inset-0 opacity-0 pointer-events-none transition-opacity duration-500">
+                <!-- SVG map will be injected here -->
+            </div>
+
+            <!-- Stage Content (Learning/Problem) -->
+            <div id="stage-view" class="absolute inset-0 flex flex-col p-6 opacity-0 pointer-events-none transition-opacity duration-500">
+                <!-- Concept Card / Problem will be injected here -->
+            </div>
+        </div>
+
+        <!-- Feedback Toast -->
+        <div id="feedback-toast" class="fixed bottom-32 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl bg-white shadow-2xl border border-white/50 opacity-0 scale-90 pointer-events-none transition-all duration-300 z-50">
+            <div class="flex items-center space-x-3">
+                <span id="feedback-icon" class="text-2xl">✨</span>
+                <span id="feedback-message" class="font-bold text-gray-800 text-lg">참 잘했어요!</span>
+            </div>
+        </div>
+
+        <!-- [Stage 3] Debug HUD (Hidden by default) -->
+        <div id="debug-hud" class="fixed top-4 right-4 p-4 bg-black/80 text-white text-[10px] font-mono rounded-lg opacity-0 pointer-events-none transition-opacity z-[100] max-w-[200px]">
+            <div class="font-bold border-b border-white/20 mb-1 pb-1 flex justify-between">
+                <span>SYSTEM DEBUG</span>
+                <span id="debug-close" class="cursor-pointer text-base leading-none">×</span>
+            </div>
+            <div id="debug-info"></div>
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

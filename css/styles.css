@@ -1,0 +1,110 @@
+/* Base styles and custom utilities */
+:root {
+    --mountain-green: #4A8B4A;
+    --sky-blue: #7CB9E8;
+    --reward-yellow: #F4D03F;
+    --danger-coral: #FF8C7A;
+    --cream-bg: #FFF8E7;
+    --clay-brown: #8B4513;
+}
+
+body {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    background: radial-gradient(circle at top right, #e0f2fe, #fdf4ff, #fff8e7);
+    background-attachment: fixed;
+}
+
+/* Glassmorphism */
+.glass {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Scrollbar Hide */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Custom Animations */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Fraction Styling */
+.fraction {
+    display: inline-flex;
+    flex-direction: column;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1;
+}
+
+.fraction .numerator {
+    border-bottom: 2px solid currentColor;
+    padding: 0 2px;
+}
+
+.fraction .denominator {
+    padding: 0 2px;
+}
+
+/* Mountain Map Stage Node */
+.stage-node {
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stage-node:hover:not(.locked) {
+    transform: translateY(-5px) scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(74, 139, 74, 0.5));
+}
+
+.stage-node.locked {
+    filter: grayscale(1) opacity(0.5);
+    cursor: not-allowed;
+}
+
+.stage-node.active circle {
+    filter: drop-shadow(0 0 10px rgba(74, 139, 74, 0.8));
+    animation: active-pulse 2s infinite;
+}
+
+@keyframes active-pulse {
+    0% { r: 15; stroke-width: 3; stroke-opacity: 1; }
+    50% { r: 17; stroke-width: 6; stroke-opacity: 0.5; }
+    100% { r: 15; stroke-width: 3; stroke-opacity: 1; }
+}
+
+/* Canvas Pad */
+#drawing-canvas {
+    touch-action: none;
+    cursor: crosshair;
+}
+
+/* Responsive fixes */
+@media (max-width: 640px) {
+    #app {
+        height: 100dvh; /* Use dynamic viewport height for mobile */
+    }
+}

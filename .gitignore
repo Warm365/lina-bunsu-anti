@@ -1,0 +1,11 @@
+# AI Agent data
+.agent/
+.gemini/
+
+# Environment
+.venv/
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
