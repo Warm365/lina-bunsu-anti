@@ -10,6 +10,7 @@ export class PizzaSVG {
         this.coloredSlices = options.colored || 0;
         this.interactive = options.interactive || false;
         this.onSliceClick = options.onSliceClick || null;
+        this.isUnequal = options.unequal || false;
 
         this.render();
     }
@@ -20,11 +21,26 @@ export class PizzaSVG {
         svg.setAttribute("viewBox", "-100 -100 200 200");
         svg.setAttribute("class", "w-full h-full max-w-[300px] mx-auto drop-shadow-lg");
 
-        const angleStep = (2 * Math.PI) / this.totalSlices;
+        let currentAngle = -Math.PI / 2;
+        const angles = [];
+        
+        if (this.isUnequal) {
+            // Randomize angles to make them unequal
+            let remaining = 2 * Math.PI;
+            for (let i = 0; i < this.totalSlices; i++) {
+                const angle = (i === this.totalSlices - 1) ? remaining : (remaining / (this.totalSlices - i)) * (0.5 + Math.random());
+                angles.push(angle);
+                remaining -= angle;
+            }
+        } else {
+            const angleStep = (2 * Math.PI) / this.totalSlices;
+            for (let i = 0; i < this.totalSlices; i++) angles.push(angleStep);
+        }
 
         for (let i = 0; i < this.totalSlices; i++) {
-            const startAngle = i * angleStep - Math.PI / 2;
-            const endAngle = (i + 1) * angleStep - Math.PI / 2;
+            const startAngle = currentAngle;
+            const endAngle = currentAngle + angles[i];
+            currentAngle = endAngle;
             
             const x1 = 80 * Math.cos(startAngle);
             const y1 = 80 * Math.sin(startAngle);

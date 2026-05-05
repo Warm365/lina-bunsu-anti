@@ -29,6 +29,9 @@ export class Stage01 {
     }
 
     renderStep() {
+        // [Stage 2] 이전 피드백 토스트 숨기기
+        document.getElementById('feedback-toast').classList.add('opacity-0', 'pointer-events-none');
+
         gsap.to(this.container, { opacity: 0, y: -20, duration: 0.3, onComplete: () => {
             this.container.innerHTML = '';
             
@@ -197,15 +200,18 @@ export class Stage01 {
         this.canvasPad = new CanvasPad('canvas-container');
         this.keypad = new FractionKeypad('keypad-area', (val) => this.checkAnswer(val, problem));
 
-        if (problem.visual && problem.visual.type === 'pizza') {
-            new PizzaSVG('visual-area', { 
-                total: problem.visual.total, 
-                colored: problem.visual.colored,
-                interactive: problem.visual.interactive,
-                onSliceClick: (i) => {
-                    // Interactive slice logic
-                }
-            });
+        if (problem.visual) {
+            if (problem.visual.type === 'pizza') {
+                new PizzaSVG('visual-area', { 
+                    total: problem.visual.total, 
+                    colored: problem.visual.colored,
+                    interactive: problem.visual.interactive
+                });
+            } else if (problem.visual.type === 'multiple_choice_visual') {
+                this.renderMultipleChoiceVisual(problem.visual.options);
+            } else if (problem.visual.type === 'bar') {
+                this.renderBarVisual(problem.visual.total, problem.visual.colored);
+            }
         }
 
         // Setup Canvas Buttons
@@ -243,10 +249,15 @@ export class Stage01 {
     }
 
     checkAnswer(val, problem) {
+        // [Stage 2] 정답 제출 시에도 헬스 체크 재수행
+        this.checkIntegrity();
+
         let isCorrect = false;
         
         if (problem.correctAnswer === "free_form") {
             isCorrect = true;
+        } else if (problem.type === "comparison" && typeof val === "number") {
+            isCorrect = val === problem.correctAnswer;
         } else {
             isCorrect = (
                 val.numerator === problem.correctAnswer.numerator &&
@@ -260,6 +271,53 @@ export class Stage01 {
         } else {
             this.showFeedback(false, problem.hint);
         }
+    }
+
+    renderMultipleChoiceVisual(options) {
+        const visualArea = document.getElementById('visual-area');
+        visualArea.innerHTML = `
+            <div class="grid grid-cols-3 gap-4 w-full h-full p-2">
+                ${options.map((opt, i) => `
+                    <div id="option-${i}" class="option-card bg-white/60 rounded-xl border-2 border-transparent hover:border-mountain cursor-pointer transition-all flex items-center justify-center p-2 relative">
+                        <div id="svg-opt-${i}" class="w-full h-full"></div>
+                        <div class="absolute top-1 left-1 bg-mountain/20 text-mountain text-[10px] font-bold px-1.5 rounded-full">${i+1}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        options.forEach((opt, i) => {
+            new PizzaSVG(`svg-opt-${i}`, { 
+                total: opt.total, 
+                colored: 0, 
+                unequal: opt.type.includes('unequal') 
+            });
+            document.getElementById(`option-${i}`).onclick = () => {
+                // Remove selection from others
+                visualArea.querySelectorAll('.option-card').forEach(card => card.classList.remove('border-mountain', 'bg-mountain/10'));
+                // Add to current
+                document.getElementById(`option-${i}`).classList.add('border-mountain', 'bg-mountain/10');
+                this.checkAnswer(i, this.problems[this.currentStep - 5]);
+            };
+        });
+    }
+
+    renderBarVisual(total, colored) {
+        const visualArea = document.getElementById('visual-area');
+        const barWidth = 240;
+        const cellWidth = barWidth / total;
+        
+        visualArea.innerHTML = `
+            <div class="flex flex-col items-center space-y-4">
+                <svg width="${barWidth}" height="40" viewBox="0 0 ${barWidth} 40" class="drop-shadow-md">
+                    ${Array.from({length: total}).map((_, i) => `
+                        <rect x="${i * cellWidth}" y="0" width="${cellWidth}" height="40" 
+                              fill="${i < colored ? '#FF8C42' : '#FFF8E7'}" 
+                              stroke="#8B4513" stroke-width="2" />
+                    `).join('')}
+                </svg>
+            </div>
+        `;
     }
 
     showFeedback(isCorrect, message) {
